@@ -1,10 +1,25 @@
 class Program{
     
+    void main(){
+        int numcheck;
+        boolean pr;
+        numcheck = 19;
+        //numcheck = read();
+        pr = isprime(numcheck);
+        if(pr == true){
+            callout("printf", "%d is a prime number", numcheck);
+        }
+        else{
+            callout("printf", "%d is not a prime number", numcheck);
+        }
+    }
+
     boolean isprime(int num){
-        boolean prime = true; 
+        boolean prime; 
         int limit;
+        prime = true;
         limit = num / 2;
-        for id = 2, limit{
+        for id = 2, limit + 1{
             if((num % id) == 0){
                 prime = false;
                 break;
@@ -16,14 +31,5 @@ class Program{
         else{
             return false;
         }
-    }
-
-    int main(){
-        int numcheck = 19;
-        boolean pr;
-        callout(scanf, "%d", &numcheck);
-        pr = isprime(numcheck);
-        callout(printf, "%d", pr);
-        return 0;
     }
 }

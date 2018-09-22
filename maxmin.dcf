@@ -1,37 +1,38 @@
 class Program{
     int arr[150]; 
 
+    void main(){
+        int length, ansmx, ansmn;
+        //length = read();
+        //for id = 0, length{
+        //    arr[id] = read();
+        //}
+        length = 10;
+        arr[0] = 1;arr[1] = 2;arr[2] = 3;arr[3] = 4;arr[4] = 5;arr[5] = 6;arr[6] = 7;arr[7] = 8;arr[8] = 9;arr[9] = 10;
+        ansmx = mx(length);
+        ansmn = mn(length);
+        callout("printf", "Max number: %d | Min number: %d\n", ansmx, ansmn);
+    }
+
     int mx(int length){
-        int m_mx;
-        m_mx = arr[0];
-        for id = 0, length - 1{
-            if(m_mx < arr[id]){
-                m_mx = arr[id];
+        int mmx;
+        mmx = arr[0];
+        for id = 0, length{
+            if(mmx < arr[id]){
+                mmx = arr[id];
             }
         }
-        return m_mx;
+        return mmx;
     }
 
     int mn(int length){
-        int m_mn;
-        m_mn = arr[0];
-        for id = 0, length - 1{
-            if(m_mn > arr[id]){
-                m_mn = arr[id];
+        int mmn;
+        mmn = arr[0];
+        for id = 0, length{
+            if(mmn > arr[id]){
+                mmn = arr[id];
             }
         }
-        return m_mn;
-    }
-
-    int main(){
-        int length, ans_mx, ans_mn;
-        callout(scanf, "%d", &length);
-        for id = 0, length - 1{
-            callout(scanf, "%d", &arr[id]);
-        }
-        ans_mx = mx(length);
-        ans_mn = mx(length);
-        callout(printf, "Max number: %d | Min number: %d", ans_mx, ans_mn);
-        return 0;
+        return mmn;
     }
 }

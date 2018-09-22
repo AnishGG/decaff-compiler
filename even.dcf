@@ -1,22 +1,22 @@
-Class Program{
+class Program{
     int arr[150]; 
 
+    void main(){
+        int length;
+        length = 10;
+        //length = read();
+        //for id = 0, length{
+        //    arr[id] = read();
+        //}
+        arr[0] = 1;arr[1] = 2;arr[2] = 3;arr[3] = 4;arr[4] = 5;arr[5] = 6;arr[6] = 7;arr[7] = 8;arr[8] = 9;arr[9] = 10;
+        pr(length);
+    }
+
     void pr(int length){
-        for id = 0, length - 1{
+        for id = 0, length{
             if((arr[id] % 2) == 0){
                 callout("printf", "%d ", arr[id]);
             }
         }
-        return;
-    }
-
-    int main(){
-        int length;
-        callout(scanf, "%d", &length);
-        for id = 0, length - 1{
-            callout(scanf, "%d", &arr[id]);
-        }
-        pr(length);
-        return 0;
     }
 }
