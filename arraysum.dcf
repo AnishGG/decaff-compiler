@@ -1,0 +1,23 @@
+class Program{
+    int arr[150];
+
+    int sm(int length){
+        int sum = 0;
+        for id = 0, length - 1{
+            sum += arr[id];
+        }
+        return sum;
+    }
+
+    int main(){
+        int length, ans;
+        length = 15;
+        callout(scanf, "%d", &length);
+        for id = 0, length - 1{
+            callout(scanf, "%d", &arr[id]);
+        }
+        ans = sm(length);
+        callout(printf, "%d", ans);
+        return 0;
+    }
+}

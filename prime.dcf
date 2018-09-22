@@ -1,0 +1,29 @@
+class Program{
+    
+    boolean isprime(int num){
+        boolean prime = true; 
+        int limit;
+        limit = num / 2;
+        for id = 2, limit{
+            if((num % id) == 0){
+                prime = false;
+                break;
+            } 
+        }
+        if(prime == true){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    int main(){
+        int numcheck = 19;
+        boolean pr;
+        callout(scanf, "%d", &numcheck);
+        pr = isprime(numcheck);
+        callout(printf, "%d", pr);
+        return 0;
+    }
+}

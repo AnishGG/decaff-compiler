@@ -1,0 +1,22 @@
+Class Program{
+    int arr[150]; 
+
+    void pr(int length){
+        for id = 0, length - 1{
+            if((arr[id] % 2) == 0){
+                callout("printf", "%d ", arr[id]);
+            }
+        }
+        return;
+    }
+
+    int main(){
+        int length;
+        callout(scanf, "%d", &length);
+        for id = 0, length - 1{
+            callout(scanf, "%d", &arr[id]);
+        }
+        pr(length);
+        return 0;
+    }
+}
