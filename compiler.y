@@ -30,31 +30,27 @@ int yyparse();
 /* Grammar rules */
 %%
 
-expression:
+expr:
           location
           | method_call
           | literal
-          | expression operation expression
-          | NOT expression
-          | SUB expression
-          | OP expression CP
+          | expr ADD expr
+          | expr SUB expr
+          | expr MUL expr
+          | expr DIV expr
+          | expr PERCENTAGE expr
+          | expr LT expr
+          | expr GT expr
+          | expr LTE expr
+          | expr GTE expr
+          | expr EQUAL expr
+          | expr NOT_EQUAL expr
+          | expr CONDITIONAL_AND expr
+          | expr CONDITIONAL_OR expr
+          | NOT expr
+          | SUB expr
+          | OP expr CP
           ;
-
-operation:
-        ADD
-        |   SUB
-        |   MUL
-        |   DIV
-        |   PERCENTAGE
-        |   LT
-        |   GT
-        |   LTE
-        |   GTE
-        |   EQUAL
-        |   NOT_EQUAL
-        |   CONDITIONAL_AND
-        |   CONDITIONAL_OR
-        ;
 
 literal:
        INT_LITERAL      
@@ -68,8 +64,8 @@ method_call:
            ;
 
 method_arguments:
-                expression
-                | method_arguments COMMA expression
+                expr
+                | method_arguments COMMA expr
                 |   /* epsilon */
                 ;
 
@@ -79,13 +75,13 @@ callout_arguments:
                  ;
 
 callout_argument:
-                expression callout_arguments
+                expr callout_arguments
                 STRING callout_arguments
                 ;
 
 location:
         ID
-        | ID LSB expression RSB
+        | ID LSB expr RSB
 
 %%
 int main(int argc, char **argv){
