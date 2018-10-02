@@ -1,9 +1,7 @@
 class Program{
-
     void main(){
         int sum, n;
         sum = 0;
-        //n = read();
         n = 9;
         sum = n * (n + 1);
         sum = sum / 2;

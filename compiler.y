@@ -30,11 +30,85 @@ int yyparse();
 /* Grammar rules */
 %%
 
+Program:
+       CLASS PROGRAM OB field_decl method_decls CB  
+       ;
+
+field_decl:
+           field_decl D_TYPE var SEMICOLON
+           |    /* epsilon */
+           ;
+
+var:
+   ID 
+   | var COMMA ID
+   | ID LSB INT_LITERAL RSB
+   | var COMMA ID LSB INT_LITERAL RSB
+   ;
+
+method_decls:
+            method_decl method_decls
+            |   /* epsilon */
+            ;
+
+method_decl:
+           D_TYPE ID arguments block
+           |    VOID ID arguments block
+           ;
+
+arguments:
+         OP CP  
+         |  OP D_TYPE ID argument CP
+         ;
+
+argument:
+        COMMA D_TYPE ID argument
+        | /* epsilon */
+        ;
+
+block:
+     OB var_decls statements CB
+     ;
+
+var_decls:
+         var_decl SEMICOLON var_decls
+         | /* epsilon */
+         ;
+
+var_decl:
+        D_TYPE ID  
+        | var_decl COMMA ID 
+        ;
+
+statements:
+          statements statement
+          | /* epsilon */
+          ;
+
+statement:
+         location assign_op expr SEMICOLON
+         |  method_call SEMICOLON
+         |  IF OP expr CP block
+         |  IF OP expr CP block ELSE block
+         |  FOR ID ASSIGN expr COMMA expr block
+         |  RETURN expr SEMICOLON
+         |  RETURN SEMICOLON    /* for void methods */
+         |  BREAK SEMICOLON
+         |  CONTINUE SEMICOLON
+         |  block
+         ;
+
+assign_op:
+         ASSIGN 
+         |  ADD_ASSIGN
+         |  SUB_ASSIGN
+         ;
+
 expr:
           location
           | method_call
           | literal
-          | expr ADD expr
+          | expr ADD expr 
           | expr SUB expr
           | expr MUL expr
           | expr DIV expr
@@ -76,7 +150,7 @@ callout_arguments:
 
 callout_argument:
                 expr callout_arguments
-                STRING callout_arguments
+                |   STRING callout_arguments  
                 ;
 
 location:
@@ -86,7 +160,7 @@ location:
 %%
 int main(int argc, char **argv){
     yyparse();
-    printf("Parsing over\n");
+    printf("Parsing over successfully\n");
 }
 
 void yyerror(char *s){

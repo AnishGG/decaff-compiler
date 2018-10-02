@@ -51,7 +51,7 @@ character \'[ -~]\'
 {comments}   /* ignoring comments */
 {digit}+|"0x"{hexdigit}+    {return INT_LITERAL;}
 \"{string}*\"    {return STRING;}
-{character}     {printf("%c\n", *yytext);return CHAR_LITERAL;}
-{letter}[0-9a-zA-Z]*    {printf("id??%d\n", *yytext);return ID;}
+{character}     {return CHAR_LITERAL;}
+{letter}[0-9a-zA-Z]*    {return ID;}
 
 %%
