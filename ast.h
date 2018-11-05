@@ -540,6 +540,7 @@ public:
 
 class ForStatement : public Statement{
 private:
+    std::string id;
     Expression *init_condition;
     Expression *end_condition;
     BlockStatement *block;
@@ -552,11 +553,15 @@ private:
     void set_block(BlockStatement *b){
         this->block = b;
     }
+    void set_id(std::string id){
+        this->id = id;
+    }
 public:
-    ForStatement(Expression *init_condition, Expression *end_condition, BlockStatement *block){
+    ForStatement(Expression *init_condition, Expression *end_condition, BlockStatement *block, std::string id){
         set_init_cond(init_condition);
         set_end_cond(end_condition);
         set_block(block);
+        set_id(id);
     }
     Expression *getInit_condition(){
         return this->init_condition;
@@ -566,6 +571,9 @@ public:
     }
     BlockStatement *getBlock(){
         return this->block;
+    }
+    std::string getID(){
+        return this->id;
     }
     void accept(Visitor *v){
         v->visit(this);
@@ -583,7 +591,7 @@ public:
     RetStatement(Expression *return_expr){
         set_ret_id(return_expr);
     }
-    Expression *getReturn_expr(){
+    Expression *getExpr(){
         return this->return_expr;
     }
     void accept(Visitor *v){

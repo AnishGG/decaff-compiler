@@ -5,6 +5,7 @@
     #include "Visitor.h"
     #include "compiler.tab.h"
     #define YY_DECL extern "C" int yylex()
+    char * translateString(char *, int);
 %}
 
 %option noyywrap
@@ -190,7 +191,7 @@ void {
 }
 
 \"{CHAR}*\" {
-    yylval.sval = strndup(yytext + 1, strlen(yytext) - 2);
+    yylval.sval = translateString(yytext + 1, strlen(yytext) - 2);
     return STRING_VALUE;
 }
 
@@ -207,3 +208,75 @@ void {
 }
 
 %%
+
+char * translateString(char * string, int size) {
+	char * ch = string;
+	char * newString = (char *) malloc(size + 1);
+	char * temp = newString;
+	int i;
+	for (i = 0; i < size; i++) {
+		switch (*ch) {
+			case '\\':
+				i++;
+				ch++;
+				switch (*ch) {
+					case 'a':
+						*temp = '\a';
+						break;
+					case 'b':
+						*temp = '\b';
+						break;
+					case 'f':
+						*temp = '\f';
+						break;
+					case 'n':
+						*temp = '\n';
+						break;
+					case 'r':
+						*temp = '\r';
+						break;
+					case 't':
+						*temp = '\t';
+						break;
+					case 'v':
+						*temp = '\v';
+						break;
+					case '\\':
+						*temp = '\\';
+						break;
+					case '\'':
+						*temp = '\'';
+						break;
+					case '\"':
+						*temp = '\"';
+						break;
+					case '?':
+						*temp = '\?';
+						break;
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+						//TODO: Fill
+						break;
+					case 'x':
+						//TODO: Fill
+						break;
+					default:
+						break;
+				}
+				break;
+			default: 
+				*temp = *ch;
+				break;
+		}
+		ch++;
+		temp++;
+	}
+	*temp = '\0';
+	return newString;
+}

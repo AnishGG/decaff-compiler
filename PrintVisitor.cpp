@@ -187,7 +187,7 @@ public:
     }
 
     void visit(RetStatement *node){
-        Expression *rt = node->getReturn_expr();
+        Expression *rt = node->getExpr();
         std::cout << "return ";
         rt->accept(this);
     }

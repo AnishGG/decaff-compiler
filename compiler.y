@@ -161,7 +161,7 @@ statement : SEMICOLON { $$ = NULL; }
           | method_call SEMICOLON { $$ = $1; }
           | IF OP expr CP block ELSE block { IfStatement *it = new IfStatement($3, $5, $7); $$ = it; }
           | IF OP expr CP block { IfStatement *it = new IfStatement($3, $5, NULL); $$ = it; }
-          | FOR IDENTIFIER ASSIGN expr COMMA expr block { ForStatement *it = new ForStatement($4, $6, $7); $$ = it; }
+          | FOR IDENTIFIER ASSIGN expr COMMA expr block { ForStatement *it = new ForStatement($4, $6, $7, std::string($2)); $$ = it; }
           | RETURN expr SEMICOLON { RetStatement *it = new RetStatement($2); $$ = it; }
           | RETURN SEMICOLON { RetStatement *it = new RetStatement(NULL); $$ = it; }
           | BREAK SEMICOLON { BreakStatement *it = new BreakStatement(); $$ = it; }
@@ -201,8 +201,8 @@ expr : location { auto it = $1; $$ = it; }
      | expr NOT_EQUAL expr { $$ = new BinOpExpression($1, $3, BinOp::not_equal); }
      | expr LT expr { $$ = new BinOpExpression($1, $3, BinOp::lt); }
      | expr LTE expr { $$ = new BinOpExpression($1, $3, BinOp::lte); }
-     | expr GTE expr { $$ = new BinOpExpression($1, $3, BinOp::gt); }
-     | expr GT expr { $$ = new BinOpExpression($1, $3, BinOp::gte); }
+     | expr GTE expr { $$ = new BinOpExpression($1, $3, BinOp::gte); }
+     | expr GT expr { $$ = new BinOpExpression($1, $3, BinOp::gt); }
      | expr ADD expr { $$ = new BinOpExpression($1, $3, BinOp::add); }
      | expr SUB expr { $$ = new BinOpExpression($1, $3, BinOp::sub); }
      | expr MUL expr { $$ = new BinOpExpression($1, $3, BinOp::mul); }
