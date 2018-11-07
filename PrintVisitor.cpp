@@ -8,7 +8,7 @@
 
 class PrintVisitor : public Visitor{
 public:
-    void visit(ASTProgram * node){
+    void *visit(ASTProgram *node){
         std::cout << "\nProgram\n";
         if(node->getFdl() == NULL){
             // No field declarations found
@@ -29,8 +29,9 @@ public:
                 (*it)->accept(this);
             }               
         }
+        return NULL;
     }
-    void visit(FieldDecl * node){
+    void *visit(FieldDecl *node){
         DataType type = node->getType();
         std::vector<VarIdentifier *> *var_id_list = node->getVar_id_list();
         std::vector<ArrIdentifier *> *arr_id_list = node->getArray_id_list();
@@ -47,20 +48,23 @@ public:
                 (*it)->accept(this);
             }
         }
+        return NULL;
     }
 
-    void visit(VarIdentifier *node){
+    void *visit(VarIdentifier *node){
         std::string id = node->getID();
         std::cout << " " << id;
+        return NULL;
     }
 
-    void visit(ArrIdentifier * node){
+    void *visit(ArrIdentifier *node){
         int sz = node->getSize();
         std::string id = node->getID();
         std::cout << " " << id << "[" << sz << "]";
+        return NULL;
     }
 
-    void visit(MethodDecl *node){
+    void *visit(MethodDecl *node){
         DataType ret_type = node->getReturnType();
         std::string id    = node->getID();
         std::vector<TypeIdentifier *> *ag = node->getArguments();
@@ -75,14 +79,16 @@ public:
         std::cout << ")\n";
 
         block->accept(this);
+        return NULL;
     }
-    void visit(TypeIdentifier *node){
+    void *visit(TypeIdentifier *node){
         DataType type = node->getType();
         std::string id = node->getID();
         std::cout << node->parseDataType(type) << " " << id << " ";
+        return NULL;
     }
 
-    void visit(BlockStatement *node){
+    void *visit(BlockStatement *node){
         std::vector<VarDecl *> *id_list = node->getID_list();
         std::vector<Statement *> *stmtlist = node->getStmtlist();
 
@@ -109,9 +115,10 @@ public:
             }
         }
         std::cout << "\n}\n";
+        return NULL;
     }
 
-    void visit(AssignStatement *node){
+    void *visit(AssignStatement *node){
         Location *loc = node->getLocation();
         AssignOp op = node->getOp();
         Expression *expr = node->getExpr();
@@ -119,14 +126,16 @@ public:
         std::cout << " " << node->parseAssignOp(op) << " ";
         expr->accept(this);
         std::cout << "\n";
+        return NULL;
     }
 
-    void visit(MethodCall *node){
+    void *visit(MethodCall *node){
         // Not required
         std::cout << "\n";
+        return NULL;
     }
 
-    void visit(SmplMethod *node){
+    void *visit(SmplMethod *node){
         std::string id = node->getID();
         std::vector<Expression *> *ag = node->getArguments();
         std::cout << id << "(";
@@ -136,9 +145,10 @@ public:
             }
         }
         std::cout << ")";
+        return NULL;
     }
 
-    void visit(CalloutMethod * node){
+    void *visit(CalloutMethod *node){
         std::string mname = node->getMethod_name();
         std::vector<CalloutArg *> *ag = node->getArguments();
         std::cout << mname << "(";
@@ -148,23 +158,27 @@ public:
             }
         }
         std::cout << ")\n";
+        return NULL;
     }
 
-    void visit(CalloutArg *node){
+    void *visit(CalloutArg *node){
         // Not required
+        return NULL;
     }
 
-    void visit(StringCalloutArg *node){
+    void *visit(StringCalloutArg *node){
         std::string ag = node->getArgument();
         std::cout << ag;
+        return NULL;
     }
 
-    void visit(ExpressionCalloutArg *node){
+    void *visit(ExpressionCalloutArg *node){
         Expression *ag = node->getArgument();
         ag->accept(this);
+        return NULL;
     }
 
-    void visit(IfStatement *node){
+    void *visit(IfStatement *node){
         Expression *cond = node->getCondition();
         BlockStatement *if_block = node->getIf_block();
         BlockStatement *else_block = node->getElse_block();
@@ -175,72 +189,85 @@ public:
         if_block->accept(this);
         if(else_block != NULL)
             else_block->accept(this);
+        return NULL;
     }
 
-    void visit(ForStatement * node){
+    void *visit(ForStatement * node){
         Expression *init = node->getInit_condition();
         Expression *end  = node->getEnd_condition();
         BlockStatement *block = node->getBlock();
         init->accept(this);
         end->accept(this);
         block->accept(this);
+        return NULL;
     }
 
-    void visit(RetStatement *node){
+    void *visit(RetStatement *node){
         Expression *rt = node->getExpr();
         std::cout << "return ";
         rt->accept(this);
+        return NULL;
     }
 
-    void visit(ConStatement *node){
+    void *visit(ConStatement *node){
         std::cout<<"continue\n";
+        return NULL;
     }
 
-    void visit(BreakStatement *node){
+    void *visit(BreakStatement *node){
         std::cout<<"break\n";
+        return NULL;
     }
 
-    void visit(Location *node){
+    void *visit(Location *node){
         // Some other classes derived from this
         std::cout<<"\n";
+        return NULL;
     }
 
-    void visit(VarLocation *node){
+    void *visit(VarLocation *node){
         std::string id = node->getID();
         std::cout << id  << " ";
+        return NULL;
     }
 
-    void visit(ArrayLocation *node){
+    void *visit(ArrayLocation *node){
         std::string id = node->getID();
         Expression *idx = node->getIndex();
         std::cout << id << " [" << idx << "]";
+        return NULL;
     }
 
-    void visit(LitExpression *node){
+    void *visit(LitExpression *node){
         std::cout<<""<<std::endl;
+        return NULL;
     }
 
-    void visit(IntLitExpression *node){
+    void *visit(IntLitExpression *node){
         int val = node->getValue();
         std::cout << " " << val;
+        return NULL;
     }
 
-    void visit(CharacterLitExpression *node){
+    void *visit(CharacterLitExpression *node){
         char val = node->getValue();
         std::cout << " " << val;
+        return NULL;
     }
 
-    void visit(TrueLitExpression *node){
+    void *visit(TrueLitExpression *node){
         bool val = node->getValue();
         std::cout << " " << val;
+        return NULL;
     }
 
-    void visit(FalseLitExpression *node){
+    void *visit(FalseLitExpression *node){
         bool val = node->getValue();
         std::cout << " " << val;
+        return NULL;
     }
 
-    void visit(BinOpExpression *node){
+    void *visit(BinOpExpression *node){
         Expression *l = node->getLeft();
         BinOp type = node->getOp();
         Expression *r = node->getRight();
@@ -248,16 +275,18 @@ public:
         l->accept(this);
         std::cout << " " << node->parseBinOp(type) << " ";
         r->accept(this);
+        return NULL;
     }
 
-    void visit(UnaryOpExpression *node){
+    void *visit(UnaryOpExpression *node){
         UnOp op = node->getOp();
         Expression *expr = node->getExpr();
         std::cout << node->parseUnOp(op) << " \n";
         expr->accept(this);
+        return NULL;
     }
 
-    void visit(VarDecl *node){
+    void *visit(VarDecl *node){
         DataType type = node->getType();
         std::vector<VarIdentifier *> *id_list = node->getID_list();
 
@@ -266,27 +295,21 @@ public:
               (*it)->accept(this);
             }
         std::cout << "\n";
+        return NULL;
     }
 
-    void visit(Identifier *node){
+    void *visit(Identifier *node){
         std::cout << "\n";
+        return NULL;
     }
 
-    void visit(Statement *node){
+    void *visit(Statement *node){
         std::cout << "\n";
+        return NULL;
     }
-    void visit(Expression *node){
+    void *visit(Expression *node){
         std::cout << "\n";
+        return NULL;
     }
 };
-#ifdef TEST
-
-int main()
-{
-    ASTProgram * obj = new ASTProgram("yolo",NULL,NULL);
-    obj->accept(new PrintVisitor());
-    return 0;
-}
-
-#endif
 #endif

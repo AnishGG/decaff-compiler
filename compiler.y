@@ -225,7 +225,6 @@ literal : INT_VALUE { IntLitExpression *it = new IntLitExpression($1); $$ = it;}
 
 %%
 
-
 void yyerror (const char *s) {
     std::cerr << "Parse Error on Line : " << yylineno << "\n" << "Message : " << s << std::endl;
     exit(-1);
