@@ -133,5 +133,33 @@ class CodeGenVisitor : public Visitor
             handleBlock(block);
             buildPass(block);
         }
+        void *visit(ASTProgram *node){
+            std::vector<FieldDecl* > *lst = node->getFdl();
+            if (lst != NULL){
+                std::vector<FieldDecl* >::iterator it;
+                for(it = lst->begin() ; it != lst->end(); it++){    // Visiting all the field declarations
+                    this->visit(*it);
+                }               
+            }
+            llvm::Function *iterator = NULL, *userMain = NULL;
+            std::vector<MethodDecl *> *lst2 = node->getMdl();
+            if (lst2 != NULL){
+                std::vector<MethodDecl *>::iterator it2;
+                for(it2 = lst2->begin() ; it2 != lst2->end(); it2++){   // Visiting all the methods in the function
+                    iterator = static_cast<llvm::Function *>(this->visit(*it2));    // To convert the llvm function from void* to function* safely during compile time itselves
+                    std::string m_name = (*it2)->getID();
+                    if (m_name == "main" && userMain == NULL){
+                        userMain = iterator;        // saving the main block
+                    }
+                }               
+            }
+            if(userMain != NULL)
+                llvm::CallInst::Create(userMain, "", topBlock());   // Calling the function main with it's local variables
+            else{
+                std::cerr << "No main Found" <<std::endl;
+                exit(0);
+            }
+            return NULL;
+        }
 };
 #endif
