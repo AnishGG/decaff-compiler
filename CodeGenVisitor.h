@@ -189,5 +189,46 @@ class CodeGenVisitor : public Visitor
             return NULL;
         }
 
+        void decl_variables_globally(std::string var_name, llvm::GlobalVariable *gI){   // Inserting the variable in the global scope
+            declareLocalVariables(var_name, gI);
+        }
+
+        void decl_variables_locally(std::string var_name, llvm::AllocaInst *aI){        // Inserting the variable in the local scope
+            declareLocalVariables(var_name, aI);
+        }
+
+        void *visit(VarIdentifier *node) {
+            if(topBlock() != bottomBlock()){
+                /* have to allocate memory on the stack in the function's frame*/
+                llvm::AllocaInst *allocaInst = new llvm::AllocaInst(llvm::Type::getInt64Ty(llvm::getGlobalContext()), node->getID()/*name*/, topBlock()/*for which basic block*/); // creating space in stack with alloca call
+                new llvm::StoreInst(llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), 0, true), allocaInst, false, topBlock());  // Storing the space in stack/memory
+                decl_variables_locally(node->getID(), allocaInst);
+                return allocaInst;
+            }
+            else{   // For global scope
+                llvm::GlobalVariable *globalInteger = new llvm::GlobalVariable(*module, llvm::Type::getInt64Ty(llvm::getGlobalContext()), false/*this is not a constant*/, llvm::GlobalValue::CommonLinkage /*Linkage for normal variables*/, NULL/* No global scope before this */, node->getID());
+                globalInteger->setInitializer(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(64/*NumBits*/, llvm::StringRef("0"), 10/*base 10*/)/*convert string to int*/));
+                decl_variables_globally(node->getID(), globalInteger);       
+                return globalInteger;
+            }
+        }
+        void *visit(ArrIdentifier *node){
+            int sz = node->getSize();
+            if(sz > 1){
+                /* Only doing in global scope */
+                llvm::GlobalVariable* variable = new llvm::GlobalVariable(*module, llvm::ArrayType::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), node->getSize()), false, llvm::GlobalValue::CommonLinkage, NULL, node->getID());
+                sz = node->getSize();
+                /* Initializing space for the array */
+                variable->setInitializer(llvm::ConstantAggregateZero::get(llvm::ArrayType::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), node->getSize())));
+                assert(node->getSize() > 1);
+                decl_variables_globally(node->getID(), variable);
+                return variable;
+            }
+            else{
+                std::cerr << "Invalid Array Size" <<std::endl;
+                exit(0);
+            }
+        }
+
 };
 #endif
