@@ -161,5 +161,33 @@ class CodeGenVisitor : public Visitor
             }
             return NULL;
         }
+        void *visit(FieldDecl * node){
+            std::vector<VarIdentifier *> *var_list = node->getVar_id_list();
+            if (var_list != NULL){
+                std::vector<VarIdentifier *>::iterator it;
+                for(it = var_list->begin() ; it != var_list->end(); it++){  // Iterating over all the variables(global)
+                    this->visit(*it);            
+                }   
+            }
+            std::vector<ArrIdentifier *> *array_list = node->getArray_id_list();
+            if (array_list != NULL){
+                std::vector<ArrIdentifier *>::iterator it2;
+                for(it2 = array_list->begin() ; it2 != array_list->end(); it2++){   // Iterating over all the arrays(global)
+                    this->visit(*it2);
+                }
+            }
+            return NULL;
+        }
+        void *visit(VarDecl* node){
+            std::vector<VarIdentifier *> *id_list = node->getID_list();
+            if(id_list != NULL){
+                std::vector<VarIdentifier *>::iterator it;
+                for(it = id_list->begin(); it != id_list->end(); it++){    // Iterating over all the variables in a single variable list
+                    this->visit(*it);
+                }
+            }
+            return NULL;
+        }
+
 };
 #endif
