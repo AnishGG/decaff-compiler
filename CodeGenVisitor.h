@@ -228,6 +228,60 @@ class CodeGenVisitor : public Visitor
                 std::cerr << "Invalid Array Size" <<std::endl;
                 exit(0);
             }
+        void *visit(MethodDecl *node){
+            llvm::Type* x;
+            std::vector<llvm::Type*> argTypes;
+            std::vector<TypeIdentifier *> *args = node->getArguments();
+            if(args != NULL){
+                std::vector<TypeIdentifier *>::iterator it;
+                for (it = args->begin(); it != args->end(); it++){
+                    if((*it)->getType() == DataType::int_literal){
+                        x = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+                    }
+                    else if((*it)->getType() == DataType::void_literal){
+                        x = llvm::Type::getVoidTy(llvm::getGlobalContext());
+                    }
+                    else if((*it)->getType() == DataType::bool_literal){
+                        x = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+                    }
+                    argTypes.push_back(x);
+                }
+            } 
+            std::string m_name = node->getID();
+            if(node->getReturnType() == DataType::int_literal)
+                x = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            else if(node->getReturnType() == DataType::void_literal)
+                x = llvm::Type::getVoidTy(llvm::getGlobalContext());
+            else if(node->getReturnType() == DataType::bool_literal)
+                x = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            llvm::FunctionType *ftype = llvm::FunctionType::get(x, llvm::makeArrayRef(argTypes), false); // Setting return type of the function
+            llvm::Function *function = llvm::Function::Create(ftype, llvm::GlobalValue::InternalLinkage, m_name, module);        // Internal Linkage used for the functions
+            std::string entry_point = "point";
+            llvm::BasicBlock *block = llvm::BasicBlock::Create(llvm::getGlobalContext(), entry_point, function, 0);             // Creating the basic block for the new method
+            pushBlock(block);   // New functions block pushed
+            if(args != NULL){
+                llvm::Function::arg_iterator it2 = function->arg_begin();
+                std::vector<TypeIdentifier *>::iterator it;
+                for(it = args->begin(); it != args->end(); it++){
+                    llvm::Value *arg = &(*it2);
+                    std::string param_name = (*it)->getID();
+                    arg->setName(param_name);
+                    llvm::AllocaInst * allocaInst = new llvm::AllocaInst(llvm::Type::getInt64Ty(llvm::getGlobalContext()), (*it)->getID(), topBlock());    // Initializing space for each parameter on stack
+                    bool cond = false;
+                    new llvm::StoreInst(arg, allocaInst, cond, topBlock());    // saving the parameter on the stack along with the reference to the block
+                    declareLocalVariables(param_name, allocaInst);
+                    it2++;
+                }
+            }
+            this->visit(node->getBlock());
+            if(topBlock()->getTerminator() == NULL){    // Check if the block terminated or not
+                if(node->getReturnType() != DataType::void_literal) // Put this block in the globalcontext
+                    llvm::ReturnInst::Create(llvm::getGlobalContext(), llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), 0, true), topBlock());
+                else 
+                    llvm::ReturnInst::Create(llvm::getGlobalContext(), topBlock());
+            }
+            popBlock();
+            return function;
         }
 
 };
