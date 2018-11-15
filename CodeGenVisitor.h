@@ -283,6 +283,38 @@ class CodeGenVisitor : public Visitor
             popBlock();
             return function;
         }
+        void *visit(TypeIdentifier * node) {
+            return NULL; 
+        }
+        void *visit(Statement *node){ 
+            /* This will return NULL if the block is well formed */
+            if (topBlock()->getTerminator() != NULL) {   // Removing the extra semicolon's, if any, present in the decaff program
+                llvm::Instruction *terminator = topBlock()->getTerminator();
+                terminator->eraseFromParent();
+            }
+            if(dynamic_cast<AssignStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<AssignStatement *>(node));  // conversion from base class to derived class
+            else if(dynamic_cast<MethodCall *>(node) != NULL)
+                return this->visit(dynamic_cast<MethodCall *>(node));       // base class to derived methodcall class
+            else if(dynamic_cast<IfStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<IfStatement *>(node));      // base class to derived ifstatement class
+            else if(dynamic_cast<ForStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<ForStatement *>(node));     // base class to derived forstatement class
+            else if(dynamic_cast<RetStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<RetStatement *>(node));     // base class to derived retstatement class
+            else if(dynamic_cast<ConStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<ConStatement *>(node));     // base class to derived continuestatement class
+            else if(dynamic_cast<BreakStatement *>(node) != NULL)
+                return this->visit(dynamic_cast<BreakStatement *>(node));   // base class to derived breakstatement class
+            else if(dynamic_cast<BlockStatement *>(node) != NULL){
+                pushBlock(NULL);    // creating an empty block for this block statement
+                this->visit(dynamic_cast<BlockStatement *>(node));          // base class to derived blockStatement class
+                popBlock();         // This block is done for now
+                return NULL;
+            }
+            std::cerr << "No such statement found" <<std::endl;
+            exit(0);
+        }
 
 };
 #endif
