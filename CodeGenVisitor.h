@@ -387,6 +387,63 @@ class CodeGenVisitor : public Visitor
             }
             return new llvm::StoreInst(expr, location, false, topBlock());  // storing the result
         }
+        void *visit(MethodCall *node){
+            if(dynamic_cast<CalloutMethod *>(node) != NULL) 
+                return this->visit(dynamic_cast<CalloutMethod *>(node));
+            if(dynamic_cast<SmplMethod *>(node) != NULL) 
+                return this->visit(dynamic_cast<SmplMethod *>(node));
+            std::cerr << "No such method call found" <<std::endl;
+            exit(0);
+        }
+        void *visit(SmplMethod *node){
+            std::vector<llvm::Value *> args;
+            std::string m_name = node->getID();
+            llvm::Function *function = (llvm::Function *)module->getFunction(m_name);
+            if(function == NULL){
+                std::cerr << "No Function defined" <<std::endl;
+                exit(0);
+            }
+            std::vector<Expression *> *arguments = node->getArguments();
+            if(!function->isVarArg()/*taking constant number of arguments*/ && arguments != NULL && (function->getArgumentList().size() != arguments->size())){
+                std::cerr << "Invalid Number of Arguments" <<std::endl;
+                exit(0);
+            }
+            if(arguments != NULL){
+                std::vector<Expression *>::iterator it;
+                for(it = arguments->begin(); it != arguments->end(); it++){
+                    Expression *arg_expr = *it;
+                    llvm::Value *evaluated_expr = static_cast<llvm::Value *>(this->visit(arg_expr));
+                    args.push_back(evaluated_expr);
+                }
+            }
+
+            llvm::Type *ret_type = function->getReturnType();
+            if(ret_type->isVoidTy() == true)   // if the function is of type void
+                return llvm::CallInst::Create(function, llvm::makeArrayRef(args), "", topBlock());    
+            else                               // If there is a return type of the function
+                return llvm::CallInst::Create(function, llvm::makeArrayRef(args), node->getID(), topBlock());
+        }
+
+        void *visit(CalloutMethod *node){
+            std::string m_name = node->getMethod_name();
+            llvm::Function *function = module->getFunction(m_name);
+            std::vector<llvm::Value *> args;
+            if(function == NULL){   // If the function is not defined yet throught callout
+                llvm::IntegerType *t = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+                llvm::FunctionType *ftype = llvm::FunctionType::get(t, true);
+                function = llvm::Function::Create(ftype, llvm::GlobalValue::ExternalLinkage, m_name, module);   // This function will be externally visible
+            }
+            std::vector<CalloutArg *> *arguments = node->getArguments();
+            if(arguments != NULL){
+                std::vector<CalloutArg *>::iterator it;
+                for(it = arguments->begin(); it != arguments->end(); it++){
+                    CalloutArg *arg_expr = *it;
+                    llvm::Value *evaluated_expr = static_cast<llvm::Value *>(this->visit(arg_expr));
+                    args.push_back(evaluated_expr);
+                }
+            }
+            return llvm::CallInst::Create(function, llvm::makeArrayRef(args), m_name, topBlock());
+        }
 
 };
 #endif
