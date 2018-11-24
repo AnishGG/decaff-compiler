@@ -316,5 +316,41 @@ class CodeGenVisitor : public Visitor
             exit(0);
         }
 
+        void *visit(Expression *node){
+            if(dynamic_cast<BinOpExpression *>(node) != NULL) 
+                return this->visit(dynamic_cast<BinOpExpression *>(node));  // base class to derived binoperationexpression class
+            else if(dynamic_cast<LitExpression *>(node) != NULL) 
+                return this->visit(dynamic_cast<LitExpression *>(node));    // base class to derived literalExpression class
+            else if(dynamic_cast<MethodCall *>(node) != NULL)
+                return this->visit(dynamic_cast<MethodCall *>(node));       // base class to derived method call class
+            else if(dynamic_cast<UnaryOpExpression *>(node) != NULL)
+                return this->visit(dynamic_cast<UnaryOpExpression *>(node));// base class to derived unaryopExpression class
+            else if(dynamic_cast<Location *>(node) != NULL)
+                return this->visit(dynamic_cast<Location *>(node));         // base class to derived location class
+            else if(dynamic_cast<CalloutArg *>(node) != NULL)
+                return this->visit(dynamic_cast<CalloutArg *>(node));
+            std::cerr << "No such expression found" <<std::endl;
+            exit(0);
+        }
+        void *visit(BlockStatement *node){
+            std::vector<VarDecl *> *id_list = node->getID_list();
+            std::vector<Statement *> *stmtlist = node->getStmtlist();
+            if(id_list != NULL){
+                std::vector<VarDecl *>::iterator it;
+                for(it = id_list->begin(); it != id_list->end(); it++) {
+                    this->visit(*it);
+                }
+            }
+            if(stmtlist != NULL){
+                std::vector<Statement *>::iterator it;
+                for(it = stmtlist->begin(); it != stmtlist->end(); it++) {
+                    this->visit(*it);
+                    if(dynamic_cast<RetStatement *>(*it))  // If scope enters this part, then other instructions won't get executed 
+                        break;                
+                }
+            }
+            return NULL;
+        }
+
 };
 #endif
