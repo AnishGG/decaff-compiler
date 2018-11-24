@@ -351,6 +351,42 @@ class CodeGenVisitor : public Visitor
             }
             return NULL;
         }
+        void *visit(AssignStatement *node){
+            llvm::Value *location = NULL;
+            Location *loc = node->getLocation();
+            if(dynamic_cast<ArrayLocation *>(loc) != NULL){ // If this is array's address
+                std::string arr_name = dynamic_cast<ArrayLocation *>(loc)->getID();
+                if(lookupGlobalVariables(arr_name) == false){
+                    std::cerr << "Variable Not Declared" <<std::endl;
+                    exit(0);
+                }
+                std::vector<llvm::Value *> index;
+                index.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(64, llvm::StringRef("0"), 10)));   // Store the value in decimal form
+                Expression *idx = dynamic_cast<ArrayLocation *>(loc)->getIndex();
+                llvm::Value *set_value = static_cast<llvm::Value *>(this->visit(idx));  // converting from void * to llvm::Value * 
+                index.push_back(set_value);        
+                llvm::Value *val = returnLocalVariables(arr_name);
+                location = llvm::GetElementPtrInst::CreateInBounds(val, index, "tmp", topBlock()); // instruction to safely access the array and struct values, insert at the end of the basic block
+            }
+            if(dynamic_cast<VarLocation *>(loc) != NULL){
+                std::string v_name = dynamic_cast<VarLocation *>(loc)->getID();
+                if(lookupGlobalVariables(v_name) == false){
+                    std::cerr << "Variable Not Declared" <<std::endl;
+                    exit(0);
+                }
+                location = returnLocalVariables(v_name);
+            }
+            Expression *epr = node->getExpr();
+            llvm::Value *expr = static_cast<llvm::Value *>(this->visit(epr));      // converting from void * to llvm::value *
+            AssignOp op = node->getOp();
+            if(op == AssignOp::sub_assign){
+                expr = llvm::BinaryOperator::Create(llvm::Instruction::Sub, new llvm::LoadInst(location, "load", topBlock())/*current value at the address*/, expr, "tmp", topBlock());
+            }
+            else if(op == AssignOp::add_assign){
+                expr = llvm::BinaryOperator::Create(llvm::Instruction::Add, new llvm::LoadInst(location, "load", topBlock()), expr, "tmp", topBlock());
+            }
+            return new llvm::StoreInst(expr, location, false, topBlock());  // storing the result
+        }
 
 };
 #endif
