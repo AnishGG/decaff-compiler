@@ -444,6 +444,71 @@ class CodeGenVisitor : public Visitor
             }
             return llvm::CallInst::Create(function, llvm::makeArrayRef(args), m_name, topBlock());
         }
+        void *visit(CalloutArg *node){ 
+            if(dynamic_cast<StringCalloutArg *>(node) != NULL) 
+                return this->visit(dynamic_cast<StringCalloutArg *>(node));
+            if(dynamic_cast<ExpressionCalloutArg *>(node) != NULL)
+                return this->visit(dynamic_cast<ExpressionCalloutArg *>(node));
+            std::cerr << "No such callout argument" <<std::endl;
+            exit(0);
+        }
+        void *visit(StringCalloutArg *node){
+            std::string argument = node->getArgument();
+            llvm::ArrayType *a_t = llvm::ArrayType::get(llvm::IntegerType::get(llvm::getGlobalContext(), 8/* number of bits */), argument.size() + 1);
+            llvm::GlobalVariable* variable = new llvm::GlobalVariable(*module, a_t, true/*is_constant?*/, llvm::GlobalValue::InternalLinkage, NULL, "string");
+            bool req = true;
+            llvm::Constant *init = llvm::ConstantDataArray::getString(llvm::getGlobalContext(), argument, req);
+            variable->setInitializer(init);
+            return variable;
+        }
+
+        void *visit(ExpressionCalloutArg *node){
+            Expression *args = node->getArgument();
+            return this->visit(args);
+        }
+
+        void *visit(IfStatement *node){
+            llvm::BasicBlock *entryBlock = topBlock(), *returnedBlock = NULL;
+            llvm::BasicBlock *mergeBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "mergeBlock", entryBlock->getParent()); // return the enclosing method of this entryBlock
+            llvm::Function *pr = entryBlock->getParent();
+            llvm::BasicBlock *ifBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "ifBlock", pr); // return the enclosing method of this entry block
+            Expression *expr = node->getCondition();
+            llvm::Value *condition = static_cast<llvm::Value *>(this->visit(expr));
+            llvm::Constant *argument_inside = llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), 0, true);    // creating a constant zero
+            llvm::ICmpInst *comparison = new llvm::ICmpInst(*entryBlock, llvm::ICmpInst::ICMP_NE, condition, argument_inside/*signed int */, "tmp");    // comparing whether the condition is true or not
+
+            pushBlock(ifBlock);
+            BlockStatement *if_block = node->getIf_block();
+            this->visit(if_block);
+            returnedBlock = topBlock();
+            popBlock();
+            if(returnedBlock->getTerminator() == NULL){
+                llvm::BranchInst::Create(mergeBlock, returnedBlock);    // (If we found a return statement)
+            }
+            std::unordered_map<std::string, llvm::Value *> localVariables;
+            if(node->getElse_block() != NULL){
+                /* only needed if there is a else block present */
+                llvm::Function *par = entryBlock->getParent();
+                llvm::BasicBlock * elseBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "elseBlock", par);    // return the enclosing method of the entry block
+                pushBlock(elseBlock);
+                BlockStatement *else_block;
+                else_block = node->getElse_block();
+                this->visit(else_block);
+                returnedBlock = topBlock();
+                popBlock();
+                if(returnedBlock->getTerminator() == NULL)             // If we found a return statement in the else block
+                    llvm::BranchInst::Create(mergeBlock, returnedBlock);
+                llvm::BranchInst::Create(ifBlock, elseBlock, comparison, entryBlock);   // IfTrue, IfFalse, condition, insert at the end of this block
+                localVariables = getLocalVariables();
+            } 
+            else{
+                llvm::BranchInst::Create(ifBlock, mergeBlock, comparison, entryBlock);
+                localVariables = getLocalVariables();
+            }
+            popBlock(), pushBlock(mergeBlock), setLocalVariables(localVariables);
+            return NULL;
+        }
+
 
 };
 #endif
