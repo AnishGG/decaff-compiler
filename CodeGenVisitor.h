@@ -564,6 +564,58 @@ class CodeGenVisitor : public Visitor
                 }
             }
         }
+        void * visit(ConStatement * node) {
+            std::cerr << "Continue have to be built yet" <<std::endl;
+            exit(0);
+        }
+        void * visit(BreakStatement * node) {
+            std::cerr << "Break have to be build yet" <<std::endl;
+            exit(0);
+        }
 
+        void *visit(Location *node){
+            if(dynamic_cast<ArrayLocation *>(node)) 
+                return this->visit(dynamic_cast<ArrayLocation *>(node));
+            if(dynamic_cast<VarLocation *>(node))
+                return this->visit(dynamic_cast<VarLocation *>(node));
+            std::cerr << "No such location found" <<std::endl;
+            exit(0);
+        }
+
+        void *visit(VarLocation *node){
+            std::string var_name = node->getID();
+            if(lookupGlobalVariables(var_name) == false){
+                std::cerr << "Variable not declared" <<std::endl;
+                exit(0);
+            }
+            llvm::Value *val = returnLocalVariables(var_name);
+            if(val == NULL){
+                std::cerr << "Variable not initialized" <<std::endl;
+                exit(0);
+            }
+            else{
+                llvm::LoadInst *instruction = new llvm::LoadInst(val, "tmp", topBlock());
+                return instruction;
+            }
+        }
+        void *visit(ArrayLocation *node){
+            std::string var_name = node->getID();
+            std::vector<llvm::Value *> index;
+            if(lookupGlobalVariables(var_name) == false){
+                std::cerr << "Variable not declared" <<std::endl;
+                exit(0);
+            }
+            index.push_back(llvm::ConstantInt::get(llvm::getGlobalContext(), llvm::APInt(64, llvm::StringRef("0"), 10/*base 10 conversion */)));
+            Expression *expr = node->getIndex();
+            llvm::Value *idx = static_cast<llvm::Value *>(this->visit(expr));
+            index.push_back(idx);
+            llvm::Value *offset = llvm::GetElementPtrInst::CreateInBounds(returnLocalVariables(var_name), index, "tmp", topBlock());
+            if(returnLocalVariables(var_name) == NULL){
+                std::cerr << "Variable not initialized" <<std::endl;
+                exit(0);
+            }
+            else
+                return new llvm::LoadInst(offset, "tmp", topBlock());
+        }
 };
 #endif
