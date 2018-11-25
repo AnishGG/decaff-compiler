@@ -508,7 +508,62 @@ class CodeGenVisitor : public Visitor
             popBlock(), pushBlock(mergeBlock), setLocalVariables(localVariables);
             return NULL;
         }
+        void *visit(ForStatement *node){
+            std::string for_name = node->getID();
+            if (lookupGlobalVariables(for_name) == false){
+                std::cerr << "Variable not declared" <<std::endl;
+                exit(0);
+            }
+            /* Creating all the necessary blocks */
+            llvm::BasicBlock *entryBlock = topBlock(), *bodyBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "loop_body", entryBlock->getParent(), 0);
+            llvm::BasicBlock *afterLoopBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "after_loop", entryBlock->getParent(), 0), *headerBlock = llvm::BasicBlock::Create(llvm::getGlobalContext(), "loop_header", entryBlock->getParent(), 0);
 
+            Expression *init_condition = node->getInit_condition();
+            llvm::Value *init_val = static_cast<llvm::Value *>(this->visit(init_condition));
+            new llvm::StoreInst(init_val, returnLocalVariables(for_name), false, entryBlock);           // storing the initial value during the initialization
+            llvm::Value *val = new llvm::LoadInst(returnLocalVariables(for_name), "load", headerBlock); // loading it's value every time for the comparison
+            Expression *end_condition = node->getEnd_condition();
+            llvm::Value *end_val = static_cast<llvm::Value *>(this->visit(end_condition));
+            llvm::ICmpInst *comparison = new llvm::ICmpInst(*headerBlock, llvm::ICmpInst::ICMP_NE, val, end_val, "tmp");
+            llvm::BranchInst::Create(bodyBlock, afterLoopBlock, comparison, headerBlock);   // ifTrue, ifFalse, comparison, parent
+            llvm::BranchInst::Create(headerBlock, entryBlock);                              // IfTrue, parent
+
+            BlockStatement *for_block = node->getBlock();
+            pushBlock(bodyBlock);
+            this->visit(for_block);
+            bodyBlock = topBlock();
+            popBlock();
+            if(bodyBlock->getTerminator() == NULL){     // If a return is also found i.e. NULL means that the block is not well formed
+                llvm::BranchInst::Create(headerBlock, bodyBlock);
+            }
+            std::unordered_map<std::string, llvm::Value *> localVariables;
+            localVariables = getLocalVariables();
+            popBlock(), pushBlock(afterLoopBlock), setLocalVariables(localVariables);
+            return NULL;
+        }
+
+        void *visit(RetStatement *node){
+            llvm::BasicBlock *h = topBlock();
+            llvm::Function *function = h->getParent();
+            if(function->getReturnType()->isVoidTy() == true){
+                if(node->getExpr() != NULL){
+                    std::cerr << "Unknown return for void type" <<std::endl;
+                    exit(0);
+                }
+                else
+                    return llvm::ReturnInst::Create(llvm::getGlobalContext(),topBlock());
+            } 
+            else{
+                if(node->getExpr() != NULL){
+                    Expression *expr = node->getExpr();
+                    return llvm::ReturnInst::Create(llvm::getGlobalContext(), static_cast<llvm::Value *>(this->visit(expr)), topBlock());
+                } 
+                else{
+                    std::cerr << "Void type return for non void function" <<std::endl;
+                    exit(0);
+                }
+            }
+        }
 
 };
 #endif
