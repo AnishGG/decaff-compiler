@@ -617,5 +617,87 @@ class CodeGenVisitor : public Visitor
             else
                 return new llvm::LoadInst(offset, "tmp", topBlock());
         }
+        void *visit(LitExpression *node){
+            if(dynamic_cast<IntLitExpression *>(node)){
+                return this->visit(dynamic_cast<IntLitExpression *>(node));
+            }
+            if(dynamic_cast<CharacterLitExpression *>(node)){
+                return this->visit(dynamic_cast<CharacterLitExpression *>(node));
+            }
+            if(dynamic_cast<TrueLitExpression *>(node)){
+                return this->visit(dynamic_cast<TrueLitExpression *>(node));
+            }
+            if(dynamic_cast<FalseLitExpression *>(node)){
+                return this->visit(dynamic_cast<FalseLitExpression *>(node));
+            }
+            std::cerr << "No such literal expression" <<std::endl;
+            exit(0);
+        }
+        void *visit(IntLitExpression *node){
+            int val = node->getValue();
+            llvm::IntegerType *it = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            return llvm::ConstantInt::get(it, val, true);
+        }
+        void *visit(CharacterLitExpression *node){
+            char val = node->getValue();
+            llvm::IntegerType *it = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            return llvm::ConstantInt::get(it, val, true);
+        }
+        void *visit(TrueLitExpression *node){
+            bool val = node->getValue();
+            llvm::IntegerType *it = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            return llvm::ConstantInt::get(it, val, true);
+        }
+        void *visit(FalseLitExpression *node){
+            bool val = node->getValue();
+            llvm::IntegerType *it = llvm::Type::getInt64Ty(llvm::getGlobalContext());
+            return llvm::ConstantInt::get(it, val, true);
+        }
+        /* casting needs to be done yet for the comparisons */
+        /* for now i1 and i32 are compared, which are not compatible */
+        void *visit(BinOpExpression *node) {
+            llvm::Value* left = static_cast<llvm::Value *>(this->visit(node->getLeft()));
+            llvm::Value* right = static_cast<llvm::Value *>(this->visit(node->getRight()));
+            if(node->getOp() == BinOp::add)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::Add, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::sub)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::Sub, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::mul)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::Mul, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::div)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::SDiv, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::percentage)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::SRem, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::lt)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_SLT, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::gt)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_SGT, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::lte)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_SLE, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::gte)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_SGE, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::not_equal)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_NE, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::equal)
+                    return new llvm::ZExtInst(llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_EQ, left, right,"tmp", topBlock()), llvm::Type::getInt64Ty(llvm::getGlobalContext()), "zext", topBlock());
+            else if(node->getOp() == BinOp::conditional_and)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::And, left, right, "tmp", topBlock());
+            else if(node->getOp() == BinOp::conditional_or)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::Or, left, right, "tmp", topBlock());
+            std::cerr << "No such Binary operator" <<std::endl;
+            exit(0);
+        }
+        void *visit(UnaryOpExpression *node){
+            llvm::Value *h = static_cast<llvm::Value *>(this->visit(node->getExpr()));
+            llvm::ConstantInt *o = llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), 0, true);
+            if(node->getOp() == UnOp::sub)
+                    return llvm::BinaryOperator::Create(llvm::Instruction::Sub, llvm::ConstantInt::get(llvm::Type::getInt64Ty(llvm::getGlobalContext()), 0, true), h, "tmp", topBlock());
+            else if(node->getOp() == UnOp::not_operator)
+                    return llvm::CmpInst::Create(llvm::Instruction::ICmp, llvm::ICmpInst::ICMP_EQ, o, h,"tmp", topBlock());
+            else{
+                std::cerr << "No such unary operator" <<std::endl;
+                exit(0);
+            }
+        }
 };
 #endif
