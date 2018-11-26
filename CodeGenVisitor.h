@@ -228,6 +228,7 @@ class CodeGenVisitor : public Visitor
                 std::cerr << "Invalid Array Size" <<std::endl;
                 exit(0);
             }
+        }
         void *visit(MethodDecl *node){
             llvm::Type* x;
             std::vector<llvm::Type*> argTypes;

@@ -6,8 +6,8 @@ CXX ?= g++
 LEX = flex 
 YACC = bison -d --report=all --warnings=all
 
-$(OBJ) : $(OBJ).tab.o lex.yy.o main_print_visitor.o 
-	$(CXX) -o $@ $(OBJ).tab.o lex.yy.o main_print_visitor.o $(CFLAGS) 
+$(OBJ) : $(OBJ).tab.o lex.yy.o main_codegen_visitor.o 
+	$(CXX) -o $@ $(OBJ).tab.o lex.yy.o main_codegen_visitor.o $(CFLAGS) 
 
 %.o : %.c 
 	$(CXX) $^ -c $(CFLAGS)
@@ -22,6 +22,6 @@ lex.yy.c : $(OBJ).l $(OBJ).tab.c
 	$(LEX) $(OBJ).l
 
 clean :
-	rm -f $(OBJ) lex.yy.c ${OBJ}.tab.c ${OBJ}.tab.h ${OBJ}.tab.o lex.yy.o main_print_visitor.o compiler.output
+	rm -f $(OBJ) lex.yy.c ${OBJ}.tab.c ${OBJ}.tab.h ${OBJ}.tab.o lex.yy.o main_codegen_visitor.o compiler.output
 
 all : ${OBJ}
