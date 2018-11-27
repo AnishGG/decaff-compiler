@@ -15,6 +15,7 @@ Decaf compiler
 - [sample_programs](./sample_programs): It contains some sample decaf programs to test the compiler
 
 ## Running the executable
+### For IR Generation
 To build the front end
 ```
 make
@@ -31,6 +32,17 @@ To run the executable
 ```
 ./a.out
 ```
+
+### For Print Visitor
+First change the value of Makefile variable `MAIN` to 'main_print_visitor.cpp'
+```
+make
+```
+To obtain the printed AST
+```
+./compiler <input_file>
+```
+
 ## Description
 
 - This is llvm frontend for the decaf programming language. The intermediate representation is generated on the standard output. If any errors are detected, the error is thrown on the stderr. 
