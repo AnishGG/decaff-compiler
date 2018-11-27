@@ -18,7 +18,7 @@ Decaf compiler
 ### For IR Generation
 To build the front end
 ```
-make
+make TYPE=main_codegen_visitor.cpp 
 ```
 To obtain the IR
 ```
@@ -34,9 +34,8 @@ To run the executable
 ```
 
 ### For Print Visitor
-First change the value of Makefile variable `MAIN` to 'main_print_visitor.cpp'
 ```
-make
+make TYPE=main_print_visitor.cpp
 ```
 To obtain the printed AST
 ```

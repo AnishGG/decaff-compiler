@@ -3,10 +3,10 @@ CFLAGS += -O3 -flto -Wall -DYYERROR_VERBOSE -std=c++11 `llvm-config --cppflags -
 CXX = g++
 LEX = flex 
 YACC = bison -d --report=all --warnings=all
-MAIN = main_codegen_visitor.o
+TYPE = main_codegen_visitor.o
 
-$(OBJ) : $(OBJ).tab.o lex.yy.o $(MAIN)
-	$(CXX) -o $(OBJ) $(OBJ).tab.o lex.yy.o $(MAIN) $(CFLAGS) 
+$(OBJ) : $(OBJ).tab.o lex.yy.o $(TYPE)
+	$(CXX) -o $(OBJ) $(OBJ).tab.o lex.yy.o $(TYPE) $(CFLAGS) 
 
 %.o : %.c 
 	$(CXX) $^ -c $(CFLAGS)
