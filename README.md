@@ -22,3 +22,7 @@ make
 clang-3.6 <output_file>
 ./a.out
 ```
+## Description
+
+- This is llvm frontend for the decaf programming language. The intermediate representation is generated on the standard output. If any errors are detected, the error is thrown on the stderr. 
+- The things still to be implemented are the continue statement, the break statement, and the error handling on detection of an error.
