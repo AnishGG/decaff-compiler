@@ -15,11 +15,20 @@ Decaf compiler
 - [sample_programs](./sample_programs): It contains some sample decaf programs to test the compiler
 
 ## Running the executable
+To build the front end
 ```
-// To run the CodeGenVisitor pass
 make
+```
+To obtain the IR
+```
 ./compiler <input_file> > <output_file>
+```
+To convert the IR into executable
+```
 clang-3.6 <output_file>
+```
+To run the executable
+```
 ./a.out
 ```
 ## Description
