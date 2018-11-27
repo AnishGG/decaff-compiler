@@ -1,0 +1,13 @@
+class Program{
+    void main(){
+        int sum, n, i;
+        sum = 0;
+        n = 9;
+        for i = 1, n + 1{
+            sum += i;
+            i += 1;
+        }
+
+        callout("printf", "Sum of first %d numbers: %d\n", n, sum);
+    }
+}
