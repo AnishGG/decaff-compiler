@@ -1,4 +1,4 @@
-decaf compiler
+Decaf compiler
 ==============
 
 ## Repo Structure
