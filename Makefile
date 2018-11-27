@@ -1,13 +1,12 @@
 OBJ = compiler
-override CFLAGS += -O3 -flto -Wall -DYYERROR_VERBOSE -std=c++11 `llvm-config --cppflags --libs all --ldflags --system-libs`
-PREFIX ?= /usr/local
-BINDIR = $(PREFIX)/bin
-CXX ?= g++
+CFLAGS += -O3 -flto -Wall -DYYERROR_VERBOSE -std=c++11 `llvm-config --cppflags --libs all --ldflags --system-libs`
+CXX = g++
 LEX = flex 
 YACC = bison -d --report=all --warnings=all
+MAIN = main_codegen_visitor.o
 
-$(OBJ) : $(OBJ).tab.o lex.yy.o main_codegen_visitor.o 
-	$(CXX) -o $@ $(OBJ).tab.o lex.yy.o main_codegen_visitor.o $(CFLAGS) 
+$(OBJ) : $(OBJ).tab.o lex.yy.o $(MAIN)
+	$(CXX) -o $(OBJ) $(OBJ).tab.o lex.yy.o $(MAIN) $(CFLAGS) 
 
 %.o : %.c 
 	$(CXX) $^ -c $(CFLAGS)
