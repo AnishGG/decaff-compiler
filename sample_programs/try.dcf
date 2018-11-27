@@ -1,0 +1,14 @@
+class Program{
+	void gcd(int x, int y) {
+		if(x == y) {
+            x = y;
+		} else {
+            y = x;
+		}
+	}
+	void main(){
+		int a;
+		gcd(6,12);
+		callout("printf","gcd is %d\n",a);
+	}
+}
